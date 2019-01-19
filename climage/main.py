@@ -2,7 +2,10 @@ import math
 import subprocess
 from PIL import Image
 import sys
+import os
 import functools
+
+import argparse
 
 # python pseudo-port of https://github.com/dom111/image-to-ansi
 
@@ -104,10 +107,36 @@ def _toAnsi(img, oWidth, is_unicode=False, is_256=False):
     return ansi_string
 
 def convert(filename, is_unicode=False, is_256=False, width=40):
-    # open the img, but convert to rgb because this fails if grayscale (assumes pixels are at least triplets)
+    # open the img, but convert to rgb because this fails if grayscale 
+    # (assumes pixels are at least triplets)
     im = Image.open(filename).convert('RGB')
     stringo = _toAnsi(im, oWidth=width, is_unicode=is_unicode, is_256=is_256)
     return stringo
 
+def main():
+    working_dir = os.getcwd()
+    # TODO: argparse.
+    arg_parser = argparse.ArgumentParser(
+            prog='climage',
+            description="An easy way to convert images for display in terminals",
+            add_help=True,
+            allow_abbrev=True
+            )
+
+    arg_parser.add_argument('-o', '--output', metavar='outfile', dest='output_file', help="Choose a file to output to")
+    # TODO: how do I read this value
+    arg_parser.add_argument('--unicode', help='Sets the output to utilise unicode characters, resulting in a more detailed image. Warning: this is not supported by all terminals.')
+    arg_parser.add_argument('--ascii', help='Restricts the output to ascii characters (default).')
+    arg_parser.add_argument('-w', '--cols', default=80, metavar='cols', help='Set the number of columns output should contain (image is scaled to this value).')
+    arg_parser.add_argument('-t', '--truecolor', help="Utilise 16 million colors to encode output, results in more accurate output. Warning: RGB color is not supported by all terminals.")
+    arg_parser.add_argument('-256', '--basiccolor', help="Only use 256 colors to encode output (default).")
+
+    args = arg_parser.parse_args(sys.argv)
+
+    print(args)
+
+
 if __name__ == "__main__":
-    print(convert(sys.argv[1], is_256=True, is_unicode=True, width=80))
+    #print(convert(sys.argv[1], is_256=True, is_unicode=True, width=80))
+    main()
+
