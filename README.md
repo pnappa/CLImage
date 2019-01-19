@@ -27,11 +27,11 @@ $ climage image.png
 
 A nicer image can be obtained when enabling unicode and truecolor flags.
 ```bash
-$ cliimage --unicode --truecolour image.png
+$ climage --unicode --truecolour image.png
 ```
 *TODO: add output image*
 
-Further options may be found by running `cliimage --help`
+Further options may be found by running `climage --help`
 
 ## Python Library
 
