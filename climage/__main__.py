@@ -7,6 +7,7 @@ from .climage import _color_types
 
 from PIL import Image
 import argparse
+import sys
 
 def _get_color_type(is_truecolor, is_256color, is_16color, is_8color):
     assert int(bool(is_8color)) + int(bool(is_16color)) + int(bool(is_256color)) + int(bool(is_truecolor)) == 1 and "only pick one colormode"
@@ -53,7 +54,9 @@ def main():
     color_type_group.add_argument('--16color', '-s', dest='color16', help="Only use 16 colors to encode output.", action="store_true")
     color_type_group.add_argument('--8color', '-b', dest='color8', help="Only use 8 colors to encode output.", action="store_true")
 
-    arg_parser.add_argument('--palette', '-p', choices=["xterm", "rxvt", "solarized", "tango", "linuxconsole"], default="xterm", help="Choose a system color palette - only applies to 16 or 256 color modes. This is especially helpful for terminal themes that drastically change the appearance of default collors, achieving more accurate colors on those terminals.")
+    arg_parser.add_argument('--palette', '-p', choices=["xterm", "rxvt", "solarized", "tango", "linuxconsole"], default=None, help="Choose a system color palette - only applies to 16 or 256 color modes. This is especially helpful for terminal themes that drastically change the appearance of default collors, achieving more accurate colors on those terminals.")
+
+    arg_parser.add_argument('--quiet', '-q', action="store_true", default=False, help="Disable warnings.")
 
     arg_parser.add_argument('-w', '--cols', default=80, metavar='cols', help='Set the number of columns output should contain (default 80).', type=int)
 
@@ -82,7 +85,9 @@ def main():
     # width of the output image
     num_cols = args.cols
 
-    palette = args.palette
+    if args.palette and is_truecolor and not args.quiet:
+        print('WARNING: Choosing palette with truecolor has no effect.', file=sys.stderr)
+    palette = args.palette if args.palette else "xterm"
 
     # print to file, or stdout?
     if outfile != '-':
