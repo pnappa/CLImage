@@ -67,6 +67,20 @@ def _rgb_to_8(r, g, b, palette):
     r, g, b = map(int, (r, g, b))
     return _best(_get_system_colors(palette)[:8], [r, g, b])[3]
 
+
+# convert a 8 or 16bit id [0, 15] to the ansi number
+def _id_to_codepoint(in_id, is_bg):
+    if in_id >= 8:
+        if is_bg:
+            return '10' + str(in_id - 8)
+        else:
+            return '9' + str(in_id - 8)
+    else:
+        if is_bg:
+            return '4' + str(in_id)
+        else:
+            return '3' + str(in_id)
+
 # convert the rgb value into an escape sequence
 def _pix_to_escape(r, g, b, color_type, palette):
     if color_type == _color_types.truecolor:
@@ -94,23 +108,13 @@ def _dual_pix_to_escape(r1, r2, g1, g2, b1, b2, color_type, palette):
     elif color_type == _color_types.color256:
         return '\x1b[48;5;{}m\x1b[38;5;{}m▄'.format(_rgb_to_256(r1, g1, b1, palette), _rgb_to_256(r2, g2, b2, palette))
     elif color_type == _color_types.color16:
-        bg_code_id = _rgb_to_16(r1, g1, b1, palette)
-        fg_code_id = _rgb_to_16(r2, g2, b2, palette)
-        bg_codepoint = None
-        fg_codepoint = None
-        if bg_code_id >= 8:
-            bg_codepoint = '10' + str(bg_codepoint - 8)
-        else:
-            bg_codepoint = '4' + str(bg_codepoint)
-        if fg_codepoint >= 8:
-            fg_codepoint = '9' + str(fg_codepoint - 8)
-        else:
-            fg_codepoint = '3' + str(fg_codepoint)
+        bg_codepoint = _id_to_codepoint(_rgb_to_16(r1, g1, b1, palette), is_bg=True)
+        fg_codepoint = _id_to_codepoint(_rgb_to_16(r2, g2, b2, palette), is_bg=False)
         return '\x1b[{}m\x1b[{}m▄'.format(bg_codepoint, fg_codepoint)
     elif color_type == _color_types.color8:
-        bg_code_id = _rgb_to_8(r1, g1, b1, palette)
-        fg_code_id = _rgb_to_8(r2, g2, b2, palette)
-        return '\x1b[4{}m\x1b[3{}m▄'.format(bg_code_id, fg_code_id)
+        bg_codepoint = _id_to_codepoint(_rgb_to_8(r1, g1, b1, palette), is_bg=True)
+        fg_codepoint = _id_to_codepoint(_rgb_to_8(r2, g2, b2, palette), is_bg=False)
+        return '\x1b[{}m\x1b[{}m▄'.format(bg_codepoint, fg_codepoint)
     else:
         raise ValueError("invalid color_type: {}".format(color_type))
 
