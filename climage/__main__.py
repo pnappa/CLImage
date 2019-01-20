@@ -49,12 +49,12 @@ def main():
     character_type_group.add_argument('--ascii', '-a', help='Restricts the output to ascii characters (default).', action="store_true", default=True)
 
     color_type_group = arg_parser.add_mutually_exclusive_group()
-    color_type_group.add_argument('--truecolor', '-t', help="Utilise 16 million colors to encode output, results in more accurate output. Warning: RGB color is not supported by all terminals.", action="store_true")
+    color_type_group.add_argument('--truecolor', '-t', help="Utilize 16 million colors to encode output, results in more accurate output. Warning: RGB color is not supported by all terminals.", action="store_true")
     color_type_group.add_argument('--256color', '-m', dest='color256', help="Only use 256 colors to encode output (default).", action="store_true")
     color_type_group.add_argument('--16color', '-s', dest='color16', help="Only use 16 colors to encode output.", action="store_true")
     color_type_group.add_argument('--8color', '-b', dest='color8', help="Only use 8 colors to encode output.", action="store_true")
 
-    arg_parser.add_argument('--palette', '-p', choices=["xterm", "rxvt", "solarized", "tango", "linuxconsole"], default=None, help="Choose a system color palette - only applies to 16 or 256 color modes. This is especially helpful for terminal themes that drastically change the appearance of default collors, achieving more accurate colors on those terminals.")
+    arg_parser.add_argument('--palette', '-p', choices=["xterm", "rxvt", "solarized", "tango", "linuxconsole"], default=None, help="Choose a system color palette - only applies to 8, 16, or 256 color modes. This is especially helpful for terminal themes that drastically change the appearance of default collors, achieving more accurate colors on those terminals.")
 
     arg_parser.add_argument('--quiet', '-q', action="store_true", default=False, help="Disable warnings.")
 
@@ -68,7 +68,7 @@ def main():
     infile = args.inputfile
     outfile = args.outfile
 
-    # whether unicode characters can be used
+    # whether unicode characters can be used (default no. not all terminals support this)
     is_unicode = False
     if args.unicode:
         is_unicode = True

@@ -15,6 +15,7 @@ An easy way to convert images to colorful encoded sequences for displaying in te
     - investigate why solarized palette looks worse on solarized theme..?
     - add a detect option to --palette, to automatically detect mapping of system colors? this might be hard.
     - run the fabled pylint on the codebase
+    - americanize more
 
 # Features
  - Custom sized images
