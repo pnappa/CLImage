@@ -1,9 +1,9 @@
 
 """
 Dumps RGB->ANSI color mappings for given palettes.
-Output format is [[r,g,b, ansinum], ...]
+Output colors are in the form [[r,g,b, ansinum], ...]
 
-To generate these pallets, take a screenshot of the section called "System colors"
+To generate these palettes, take a screenshot of the section called "System colors"
 when running colortest-256. Ensure that the screenshot is the same orientation as
 is presented (black should be top left, white should be bottom right), and that no
 additional colors are present except for the 16.

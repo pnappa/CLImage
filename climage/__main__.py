@@ -31,7 +31,7 @@ def convert(filename, is_unicode=False, is_truecolor=False, is_256color=True, is
 def to_file(infile, outfile, is_unicode=False, is_truecolor=False, is_256color=True, is_16color=False, is_8color=False, width=80, palette="xterm"):
     with open(outfile, 'w') as ofile:
         ansi_str = convert(infile, is_unicode=is_unicode, is_truecolor=is_truecolor, is_256color=is_256color, is_16color=is_16color, is_8color=is_8color, width=width, palette=palette)
-        ofile.write(convert)
+        ofile.write(ansi_str)
 
 def main():
     arg_parser = argparse.ArgumentParser(

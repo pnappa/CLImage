@@ -157,3 +157,4 @@ def _toAnsi(img, oWidth, is_unicode, color_type, palette):
             next(yit, None)
 
     return ansi_string
+

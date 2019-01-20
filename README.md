@@ -14,6 +14,7 @@ An easy way to convert images to colorful encoded sequences for displaying in te
     - rename the `_toAnsi` fn, as it's not really right (ANSI is restricted to the 16 color stuff, right?)
     - investigate why solarized palette looks worse on solarized theme..?
     - add a detect option to --palette, to automatically detect mapping of system colors? this might be hard.
+    - run the fabled pylint on the codebase
 
 # Features
  - Custom sized images
