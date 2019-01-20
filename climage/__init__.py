@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ CLImage entry point """
 
 import pkg_resources

@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+#CLImage
+
+Convert images to beautiful ANSI escape codes for display in commandline interfaces.
+
+## Features
+ - 
+
+
+"""
 from setuptools import setup
 
 setup(name='climage',

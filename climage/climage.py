@@ -1,7 +1,13 @@
-
-# python pseudo-port of https://github.com/dom111/image-to-ansi
+""" CLImage entry point """
 
 colour_mapping = []
+
+# get the best term colour
+def _best(candidates, source):
+    # based on the distance from the populated colour table - closest wins!
+    return min(candidates, key=lambda x: abs(x[0] - source[0]) + 
+                                         abs(x[1] - source[1]) + 
+                                         abs(x[2] - source[2]))
 
 def _rgb_to_256(r, g, b):
     # TODO: i reckon I can replace this with a fast voronoi version
@@ -44,15 +50,26 @@ def _rgb_to_256(r, g, b):
 
     r, g, b = map(int, (r, g, b))
 
-    # get the best term colour
-    def best(candidates, source):
-        # based on the distance from the populated colour table - closest wins!
-        return min(candidates, key=lambda x: abs(x[0] - source[0]) + 
-                                             abs(x[1] - source[1]) + 
-                                             abs(x[2] - source[2]))
+    return _best(colour_mapping, [r, g, b])[3]
 
-    return best(colour_mapping, [r, g, b])[3]
-
+# convert a rgb color to the closest 16 color number
+def _rgb_to_16(r, g, b, palette="xterm"):
+    # see extras/colorextract.py for details on getting these values
+    color16_mapping = None
+    if palette == "xterm":
+        color16_mapping = [[0, 0, 0, 0], [205, 0, 0, 1], [0, 205, 0, 2], [205, 205, 0, 3], [0, 0, 238, 4], [205, 0, 205, 5], [0, 205, 205, 6], [229, 229, 229, 7], [127, 127, 127, 8], [255, 0, 0, 9], [0, 255, 0, 10], [255, 255, 0, 11], [92, 92, 255, 12], [255, 0, 255, 13], [0, 255, 255, 14], [255, 255, 255, 15]]
+    elif palette == "linuxconsole":
+        color16_mapping = [[0, 0, 0, 0], [170, 0, 0, 1], [0, 170, 0, 2], [170, 85, 0, 3], [0, 0, 170, 4], [170, 0, 170, 5], [0, 170, 170, 6], [170, 170, 170, 7], [85, 85, 85, 8], [255, 85, 85, 9], [85, 255, 85, 10], [255, 255, 85, 11], [85, 85, 255, 12], [255, 85, 255, 13], [85, 255, 255, 14], [255, 255, 255, 15]]
+    elif palette == "solarized":
+        color16_mapping = [[7, 54, 66, 0], [220, 50, 47, 1], [133, 153, 0, 2], [181, 137, 0, 3], [38, 139, 210, 4], [211, 54, 130, 5], [42, 161, 152, 6], [238, 232, 213, 7], [0, 43, 54, 8], [203, 75, 22, 9], [88, 110, 117, 10], [101, 123, 131, 11], [131, 148, 150, 12], [108, 113, 196, 13], [147, 161, 161, 14], [253, 246, 227, 15]]
+    elif palette == "rxvt":
+        color16_mapping = [[0, 0, 0, 0], [205, 0, 0, 1], [0, 205, 0, 2], [205, 205, 0, 3], [0, 0, 205, 4], [205, 0, 205, 5], [0, 205, 205, 6], [250, 235, 215, 7], [64, 64, 64, 8], [255, 0, 0, 9], [0, 255, 0, 10], [255, 255, 0, 11], [0, 0, 255, 12], [255, 0, 255, 13], [0, 255, 255, 14], [255, 255, 255, 15]]
+    elif palette == "tango":
+        color16_mapping = [[0, 0, 0, 0], [204, 0, 0, 1], [78, 154, 6, 2], [196, 160, 0, 3], [52, 101, 164, 4], [117, 80, 123, 5], [6, 152, 154, 6], [211, 215, 207, 7], [85, 87, 83, 8], [239, 41, 41, 9], [138, 226, 52, 10], [252, 233, 79, 11], [114, 159, 207, 12], [173, 127, 168, 13], [52, 226, 226, 14], [238, 238, 236, 15]]
+    else:
+        raise ValueError("invalid palette {}".format(palette))
+    
+    return _best(color16_mapping, [r, g, b])[3]
 
 # convert the rgb value into an escape sequence
 def _pix_to_escape(r, g, b, is_truecolor):
