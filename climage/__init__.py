@@ -6,7 +6,7 @@ __author__ = "Patrick Nappa"
 __email__ = "patricknappa@gmail.com"
 __version__ = pkg_resources.get_distribution('climage').version
 
-from climage.main import main
+from climage.__main__ import convert, to_file, main
 
 if __name__ == "__main__":
     main()

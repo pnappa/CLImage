@@ -8,7 +8,12 @@ setup(name='climage',
       author_email='patricknappa@gmail.com',
       license='MIT',
       packages=['climage'],
+      entry_points={
+          'console_scripts': [
+              'climage = climage:main',
+              ]
+          },
       install_requires=[
-          'PIL',
+          'Pillow',
       ],
       zip_safe=False)

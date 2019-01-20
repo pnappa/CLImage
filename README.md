@@ -5,7 +5,6 @@ An easy way to convert images to colorful encoded sequences for displaying in te
 *TODO: add example image here*
 
 # TODO:
-    - check requires in setup.py
     - write docstrings
     - investigate speeding up & lowering space of the `_rgb_to_ansi` fn. there are some clever algorithms i can use
     - might want to investigate accuracy of the existing color lookup
