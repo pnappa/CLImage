@@ -6,10 +6,10 @@ An easy way to convert images to colorful encoded sequences for displaying in te
 
 # TODO:
     - check requires in setup.py
-    - fix argparse reading in climage/main.py
     - write docstrings
     - investigate speeding up & lowering space of the `_rgb_to_ansi` fn. there are some clever algorithms i can use
     - might want to investigate accuracy of the existing color lookup
+    - investigate different scaling modes? 256 color sometimes looks better for colors?
 
 # Features
  - Custom sized images

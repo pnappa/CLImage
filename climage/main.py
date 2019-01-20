@@ -1,10 +1,15 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import subprocess
 from PIL import Image
 import sys
 import os
 import functools
 
+# TODO: uncomment when we're pipified
 #from . import __version__
+__version__ = 0.1
 
 import argparse
 
@@ -81,16 +86,19 @@ def _dual_pix_to_escape(r1, r2, g1, g2, b1, b2, is_truecolor):
 def _toAnsi(img, oWidth, is_unicode=False, is_truecolor=False):
     destWidth = img.width
     destHeight = img.height
-    # produce a scale if the image is too big
-    if destWidth > oWidth:
-        scale = destWidth / oWidth
-        destWidth = oWidth
-        destHeight = int(destHeight // scale)
+    scale = destWidth / oWidth
+    destWidth = oWidth
+    destHeight = int(destHeight // scale)
 
     # trim the height to an even number of pixels 
     # (we draw two rows at a time in the unicode version)
     if is_unicode:
         destHeight -= destHeight % 2
+    else:
+        # for ascii, we need two columns to have square pixels (rows are twice the size
+        # of  columns).
+        destWidth //= 2
+        destHeight //= 2
 
     # resize to new size
     img = img.resize((destWidth, destHeight))
@@ -123,35 +131,59 @@ def convert(filename, is_unicode=False, is_truecolor=False, width=80):
 
 def to_file(infile, outfile, is_unicode=False, is_truecolor=False, width=80):
     with open(outfile, 'w') as ofile:
-        ansi_str = convert(infile, is_unicode, is_truecolor, width)
+        ansi_str = convert(infile, is_unicode=is_unicode, is_truecolor=is_truecolor, width=width)
         ofile.write(convert)
 
 def main():
-    # TODO: argparse
     arg_parser = argparse.ArgumentParser(
             prog='climage',
             description="An easy way to convert images for display in terminals",
+            epilog='',
             add_help=True,
-            allow_abbrev=True
             )
 
-    arg_parser.add_argument('-o', '--output', metavar='outfile', dest='output_file', help="Choose a file to output to")
-    # TODO: how do I read this value
-    arg_parser.add_argument('--unicode', help='Sets the output to utilise unicode characters, resulting in a more detailed image. Warning: this is not supported by all terminals.')
     arg_parser.add_argument('-v', '--version', action='version',
                             version='climage {0}'.format(__version__))
-    arg_parser.add_argument('--ascii', help='Restricts the output to ascii characters (default).')
-    arg_parser.add_argument('-w', '--cols', default=80, metavar='cols', help='Set the number of columns output should contain (image is scaled to this value).')
-    arg_parser.add_argument('-t', '--truecolor', help="Utilise 16 million colors to encode output, results in more accurate output. Warning: RGB color is not supported by all terminals.")
-    arg_parser.add_argument('-m', '--256', help="Only use 256 colors to encode output (default).")
 
-    args = arg_parser.parse_args(sys.argv)
+    character_type_group = arg_parser.add_mutually_exclusive_group()
+    character_type_group.add_argument('--unicode', '-u', help='Sets the output to utilise unicode characters, resulting in a more detailed image. Warning: this is not supported by all terminals.', action="store_true")
+    character_type_group.add_argument('--ascii', '-a', help='Restricts the output to ascii characters (default).', action="store_true", default=True)
 
-    print(args)
+    color_type_group = arg_parser.add_mutually_exclusive_group()
+    color_type_group.add_argument('--truecolor', '-t', help="Utilise 16 million colors to encode output, results in more accurate output. Warning: RGB color is not supported by all terminals.", action="store_true")
+    color_type_group.add_argument('--256', '-m', help="Only use 256 colors to encode output (default).", action="store_true", default=True)
+
+    arg_parser.add_argument('-w', '--cols', default=80, metavar='cols', help='Set the number of columns output should contain (default 80).', type=int)
+
+    arg_parser.add_argument('-o', '--output', metavar='outfile', dest='outfile', help="Choose a file to output to", default='-')
+
+    arg_parser.add_argument('inputfile', help="The image file you wish to convert.")
+
+    args = arg_parser.parse_args()
+    infile = args.inputfile
+    outfile = args.outfile
+
+    # whether unicode characters can be used
+    is_unicode = False
+    if args.unicode:
+        is_unicode = True
+
+    # what mode of color should be used
+    is_truecolor = False
+    if args.truecolor:
+        is_truecolor = True
+
+    # width of the output image
+    num_cols = args.cols
+
+    # print to file, or stdout?
+    if outfile != '-':
+        to_file(infile, outfile, is_unicode=is_unicode, is_truecolor=is_truecolor, width=num_cols)
+    else:
+        print(convert(infile, is_unicode=is_unicode, is_truecolor=is_truecolor, width=num_cols))
 
 
 # TODO: remove this
 if __name__ == "__main__":
-    print(convert(sys.argv[1], is_truecolor=False, is_unicode=True, width=80))
-    #main()
+    main()
 
