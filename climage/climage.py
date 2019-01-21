@@ -80,20 +80,6 @@ def _get_system_colors(palette):
     else:
         raise ValueError("invalid palette {}".format(palette))
 
-def _rgb_to_256(r, g, b, palette):
-    r, g, b = map(int, (r, g, b))
-    return _best(_color_types.color256, palette, (r, g, b))
-
-# convert a rgb color to the closest 16 color number
-def _rgb_to_16(r, g, b, palette):
-    r, g, b = map(int, (r, g, b))
-    return _best(_color_types.color16, palette, (r, g, b))
-
-def _rgb_to_8(r, g, b, palette):
-    # 8 bit is simply the non-dark versions of the 16 system colors
-    r, g, b = map(int, (r, g, b))
-    return _best(_color_types.color8, palette, (r, g, b))
-
 # convert a 8 or 16bit id [0, 15] to the ansi number
 def _id_to_codepoint(in_id, is_bg):
     if in_id >= 8:
@@ -112,38 +98,21 @@ def _pix_to_escape(r, g, b, color_type, palette):
     if color_type == _color_types.truecolor:
         return '\x1b[48;2;{};{};{}m  '.format(r, g, b)
     elif color_type == _color_types.color256:
-        return '\x1b[48;5;{}m  '.format(_rgb_to_256(r, g, b, palette))
-    elif color_type == _color_types.color16:
-        escape_code_id = _rgb_to_16(r, g, b, palette)
-        # TODO: replace this with the refactored code
-        codepoint = None
-        if escape_code_id >= 8:
-            codepoint = '10' + str(escape_code_id - 8)
-        else:
-            codepoint = '4' + str(escape_code_id)
-        return '\x1b[{}m  '.format(codepoint)
-    elif color_type == _color_types.color8:
-        escape_code_id = _rgb_to_8(r, g, b, palette)
-        return '\x1b[4{}m  '.format(escape_code_id)
+        return '\x1b[48;5;{}m  '.format(_best(color_type, palette, (r, g, b)))
     else:
-        raise ValueError("invalid color_type: {}".format(color_type))
+        color_id = _best(color_type, palette, (r, g, b))
+        return '\x1b[{}m'.format(_id_to_codepoint(color_id, is_bg=Tre))
 
 # convert the two row's colors to a escape sequence (unicode does two rows at a time)
 def _dual_pix_to_escape(r1, r2, g1, g2, b1, b2, color_type, palette):
     if color_type == _color_types.truecolor:
         return '\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m▄'.format(r1, g1, b1, r2, g2, b2)
     elif color_type == _color_types.color256:
-        return '\x1b[48;5;{}m\x1b[38;5;{}m▄'.format(_rgb_to_256(r1, g1, b1, palette), _rgb_to_256(r2, g2, b2, palette))
-    elif color_type == _color_types.color16:
-        bg_codepoint = _id_to_codepoint(_rgb_to_16(r1, g1, b1, palette), is_bg=True)
-        fg_codepoint = _id_to_codepoint(_rgb_to_16(r2, g2, b2, palette), is_bg=False)
-        return '\x1b[{}m\x1b[{}m▄'.format(bg_codepoint, fg_codepoint)
-    elif color_type == _color_types.color8:
-        bg_codepoint = _id_to_codepoint(_rgb_to_8(r1, g1, b1, palette), is_bg=True)
-        fg_codepoint = _id_to_codepoint(_rgb_to_8(r2, g2, b2, palette), is_bg=False)
-        return '\x1b[{}m\x1b[{}m▄'.format(bg_codepoint, fg_codepoint)
+        return '\x1b[48;5;{}m\x1b[38;5;{}m▄'.format(_best(color_type, palette, r1, g1, b1), _rgb_to_256(r2, g2, b2, palette))
     else:
-        raise ValueError("invalid color_type: {}".format(color_type))
+        bg_codepoint = _id_to_codepoint(_best(color_type, palette, r1, g1, b1), is_bg=True)
+        fg_codepoint = _id_to_codepoint(_best(color_type, palette, r2, g2, b2), is_bg=False)
+        return '\x1b[{}m\x1b[{}m▄'.format(bg_codepoint, fg_codepoint)
 
 def _toAnsi(img, oWidth, is_unicode, color_type, palette):
     destWidth = img.width
@@ -170,10 +139,10 @@ def _toAnsi(img, oWidth, is_unicode, color_type, palette):
     yit = iter(range(destHeight))
     for y in yit:
         for x in range(destWidth):
-            r, g, b = map(str, img.getpixel((x, y)))
+            r, g, b = img.getpixel((x, y))
             if is_unicode:
                 # the next row's pixel
-                rprime, gprime, bprime = map(str, img.getpixel((x, y+1)))
+                rprime, gprime, bprime = img.getpixel((x, y+1))
                 ansi_build.write(_dual_pix_to_escape(r, rprime, g, gprime, b, bprime, color_type, palette))
             else:
                 ansi_build.write(_pix_to_escape(r, g, b, color_type, palette))
