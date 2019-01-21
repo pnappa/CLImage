@@ -1,4 +1,3 @@
-""" CLImage entry point """
 
 from io import StringIO
 import kdtree
@@ -41,7 +40,7 @@ def populate_kdtree(color_type, palette):
     elif color_type == _color_types.color256:
         colors = _get_system_colors(palette)[:]
         # credit: https://github.com/dom111/image-to-ansi/
-        # I actually don't know how he came up with these colours
+        # these colours can be found by running colortest-256
         for r1 in [0, 95, 135, 175, 215, 255]:
             for g1 in [0, 95, 135, 175, 215, 255]:
                 for b1 in [0, 95, 135, 175, 215, 255]:
@@ -101,7 +100,7 @@ def _pix_to_escape(r, g, b, color_type, palette):
         return '\x1b[48;5;{}m  '.format(_best(color_type, palette, (r, g, b)))
     else:
         color_id = _best(color_type, palette, (r, g, b))
-        return '\x1b[{}m'.format(_id_to_codepoint(color_id, is_bg=Tre))
+        return '\x1b[{}m  '.format(_id_to_codepoint(color_id, is_bg=True))
 
 # convert the two row's colors to a escape sequence (unicode does two rows at a time)
 def _dual_pix_to_escape(r1, r2, g1, g2, b1, b2, color_type, palette):

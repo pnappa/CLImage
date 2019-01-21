@@ -36,7 +36,7 @@ def to_file(infile, outfile, is_unicode=False, is_truecolor=False, is_256color=T
 
 def main():
     arg_parser = argparse.ArgumentParser(
-            prog='climage',
+            prog='climage {0}'.format(__version__),
             description="An easy way to convert images for display in terminals",
             epilog='',
             add_help=True,
