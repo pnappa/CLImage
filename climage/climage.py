@@ -2,6 +2,7 @@
 
 from io import StringIO
 import kdtree
+import functools
 
 # for storing pixels within the kdtree
 class PixelMapping:
@@ -16,13 +17,14 @@ class PixelMapping:
         return self.coords[i]
 
 # get the best term colour
+@functools.lru_cache()
 def _best(color_type, palette, source):
     # lazily only generate palettes if necessary
     if color_kdtrees[color_type][palette] is None:
         populate_kdtree(color_type, palette)
 
     tr = color_kdtrees[color_type][palette]
-    return tr.search_nn(source)[0].data
+    return tr.search_nn(source)[0].data.code
 
 class _color_types:
     truecolor = 0
@@ -78,21 +80,19 @@ def _get_system_colors(palette):
     else:
         raise ValueError("invalid palette {}".format(palette))
 
-
 def _rgb_to_256(r, g, b, palette):
     r, g, b = map(int, (r, g, b))
-    return _best(_color_types.color256, palette, [r, g, b]).code
+    return _best(_color_types.color256, palette, (r, g, b))
 
 # convert a rgb color to the closest 16 color number
 def _rgb_to_16(r, g, b, palette):
     r, g, b = map(int, (r, g, b))
-    return _best(_color_types.color16, palette, [r, g, b]).code
+    return _best(_color_types.color16, palette, (r, g, b))
 
 def _rgb_to_8(r, g, b, palette):
     # 8 bit is simply the non-dark versions of the 16 system colors
     r, g, b = map(int, (r, g, b))
-    return _best(_color_types.color8, palette, [r, g, b]).code
-
+    return _best(_color_types.color8, palette, (r, g, b))
 
 # convert a 8 or 16bit id [0, 15] to the ansi number
 def _id_to_codepoint(in_id, is_bg):
