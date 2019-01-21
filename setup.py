@@ -2,7 +2,7 @@
 """
 # CLImage
 
-Convert images to beautiful ANSI escape codes for display in commandline interfaces.
+Convert images to beautiful ANSI escape codes for display in command line interfaces.
 
 Available as both a CLI application and a Python library.
 
@@ -30,9 +30,6 @@ import climage
 output = climage.convert('image.png', is_unicode=True)
 print(output)
 ```
-
-For developer reference, please see the documentation.
-# TODO: add link to documentation
 
 """
 from setuptools import setup
