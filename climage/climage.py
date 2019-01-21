@@ -17,7 +17,7 @@ class PixelMapping:
         return self.coords[i]
 
 # get the best term colour
-@functools.lru_cache()
+@functools.lru_cache(maxsize=256)
 def _best(color_type, palette, source):
     # lazily only generate palettes if necessary
     if color_kdtrees[color_type][palette] is None:
@@ -108,10 +108,12 @@ def _dual_pix_to_escape(r1, r2, g1, g2, b1, b2, color_type, palette):
     if color_type == _color_types.truecolor:
         return '\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m▄'.format(r1, g1, b1, r2, g2, b2)
     elif color_type == _color_types.color256:
-        return '\x1b[48;5;{}m\x1b[38;5;{}m▄'.format(_best(color_type, palette, r1, g1, b1), _rgb_to_256(r2, g2, b2, palette))
+        bg = _best(color_type, palette, (r1, g1, b1))
+        fg = _best(color_type, palette, (r2, g2, b2))
+        return '\x1b[48;5;{}m\x1b[38;5;{}m▄'.format(bg, fg)
     else:
-        bg_codepoint = _id_to_codepoint(_best(color_type, palette, r1, g1, b1), is_bg=True)
-        fg_codepoint = _id_to_codepoint(_best(color_type, palette, r2, g2, b2), is_bg=False)
+        bg_codepoint = _id_to_codepoint(_best(color_type, palette, (r1, g1, b1)), is_bg=True)
+        fg_codepoint = _id_to_codepoint(_best(color_type, palette, (r2, g2, b2)), is_bg=False)
         return '\x1b[{}m\x1b[{}m▄'.format(bg_codepoint, fg_codepoint)
 
 def _toAnsi(img, oWidth, is_unicode, color_type, palette):
