@@ -1,4 +1,4 @@
-# CLImage
+# CLImage 📷
 
 Convert images to beautiful ANSI escape codes for display in command line interfaces.
 
