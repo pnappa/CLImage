@@ -1,19 +1,65 @@
 """ CLImage entry point """
 
-colour_mapping = []
+from io import StringIO
+import kdtree
+
+# for storing pixels within the kdtree
+class PixelMapping:
+    def __init__(self, r, g, b, code):
+        self.coords = (r, g, b)
+        self.code = code 
+
+    def __len__(self):
+        return len(self.coords)
+
+    def __getitem__(self, i):
+        return self.coords[i]
 
 # get the best term colour
-def _best(candidates, source):
-    # based on the distance from the populated colour table - closest wins!
-    return min(candidates, key=lambda x: abs(x[0] - source[0]) + 
-                                         abs(x[1] - source[1]) + 
-                                         abs(x[2] - source[2]))
+def _best(color_type, palette, source):
+    # lazily only generate palettes if necessary
+    if color_kdtrees[color_type][palette] is None:
+        populate_kdtree(color_type, palette)
+
+    tr = color_kdtrees[color_type][palette]
+    return tr.search_nn(source)[0].data
 
 class _color_types:
     truecolor = 0
     color256 = 1
     color16 = 2
     color8 = 3
+
+def populate_kdtree(color_type, palette):
+    # TODO: add assert for color_type?
+    if color_type == _color_types.color8:
+        colors = _get_system_colors(palette)[:8]
+    elif color_type == _color_types.color16:
+        colors = _get_system_colors(palette)[:]
+    elif color_type == _color_types.color256:
+        colors = _get_system_colors(palette)[:]
+        # credit: https://github.com/dom111/image-to-ansi/
+        # I actually don't know how he came up with these colours
+        for r1 in [0, 95, 135, 175, 215, 255]:
+            for g1 in [0, 95, 135, 175, 215, 255]:
+                for b1 in [0, 95, 135, 175, 215, 255]:
+                    colors.append([r1, g1, b1, 16 + int(
+                                                str(int(5 * r1 // 255)) + 
+                                                str(int(5 * g1 // 255)) +
+                                                str(int(5 * b1 // 255)), 6)])
+
+        for s in [8, 18, 28, 38, 48, 58, 68, 78, 88, 98, 108, 118, 128, 138, 148, 158, 168, 178, 188, 198, 208, 218, 228, 238]:
+            colors.append([s, s, s, 232 + s // 10])
+
+    color_kdtrees[color_type][palette] = kdtree.create([PixelMapping(*col) for col in colors])
+
+palettes = ["default", "xterm", "linuxconsole", "solarized", "rxvt", "tango"]
+# store the generated kdtrees for palettes
+color_kdtrees = {
+        _color_types.color256: {pal:None for pal in palettes},
+        _color_types.color16: {pal:None for pal in palettes},
+        _color_types.color8: {pal:None for pal in palettes}
+        }
 
 def _get_system_colors(palette):
     # see extras/colorextract.py for details on getting these values
@@ -32,42 +78,20 @@ def _get_system_colors(palette):
     else:
         raise ValueError("invalid palette {}".format(palette))
 
+
 def _rgb_to_256(r, g, b, palette):
-    # TODO: i reckon I can replace this with a fast voronoi version
-    # i.e. generate voronoi boundaries offline, then find which
-    # bound the point is in.
-    # TODO: as it is, this is rather slow actually!
-    def gen_colours():
-        # credit: https://github.com/dom111/image-to-ansi/
-        # I actually don't know how he came up with these colours
-        for r1 in [0, 95, 135, 175, 215, 255]:
-            for g1 in [0, 95, 135, 175, 215, 255]:
-                for b1 in [0, 95, 135, 175, 215, 255]:
-                    colour_mapping.append([r1, g1, b1, 16 + int(
-                                                str(int(5 * r1 // 255)) + 
-                                                str(int(5 * g1 // 255)) +
-                                                str(int(5 * b1 // 255)), 6)])
-
-        for s in [8, 18, 28, 38, 48, 58, 68, 78, 88, 98, 108, 118, 128, 138, 148, 158, 168, 178, 188, 198, 208, 218, 228, 238]:
-            colour_mapping.append([s, s, s, 232 + s // 10])
-
-    if len(colour_mapping) == 0:
-        gen_colours()
-
     r, g, b = map(int, (r, g, b))
-
-    return _best(colour_mapping + _get_system_colors(palette), [r, g, b])[3]
+    return _best(_color_types.color256, palette, [r, g, b]).code
 
 # convert a rgb color to the closest 16 color number
 def _rgb_to_16(r, g, b, palette):
     r, g, b = map(int, (r, g, b))
-
-    return _best(_get_system_colors(palette), [r, g, b])[3]
+    return _best(_color_types.color16, palette, [r, g, b]).code
 
 def _rgb_to_8(r, g, b, palette):
     # 8 bit is simply the non-dark versions of the 16 system colors
     r, g, b = map(int, (r, g, b))
-    return _best(_get_system_colors(palette)[:8], [r, g, b])[3]
+    return _best(_color_types.color8, palette, [r, g, b]).code
 
 
 # convert a 8 or 16bit id [0, 15] to the ansi number
@@ -91,6 +115,7 @@ def _pix_to_escape(r, g, b, color_type, palette):
         return '\x1b[48;5;{}m  '.format(_rgb_to_256(r, g, b, palette))
     elif color_type == _color_types.color16:
         escape_code_id = _rgb_to_16(r, g, b, palette)
+        # TODO: replace this with the refactored code
         codepoint = None
         if escape_code_id >= 8:
             codepoint = '10' + str(escape_code_id - 8)
@@ -140,7 +165,7 @@ def _toAnsi(img, oWidth, is_unicode, color_type, palette):
     # resize to new size
     img = img.resize((destWidth, destHeight))
     # where the converted string will be put in
-    ansi_string = ''
+    ansi_build = StringIO()
 
     yit = iter(range(destHeight))
     for y in yit:
@@ -149,14 +174,14 @@ def _toAnsi(img, oWidth, is_unicode, color_type, palette):
             if is_unicode:
                 # the next row's pixel
                 rprime, gprime, bprime = map(str, img.getpixel((x, y+1)))
-                ansi_string += _dual_pix_to_escape(r, rprime, g, gprime, b, bprime, color_type, palette)
+                ansi_build.write(_dual_pix_to_escape(r, rprime, g, gprime, b, bprime, color_type, palette))
             else:
-                ansi_string += _pix_to_escape(r, g, b, color_type, palette)
+                ansi_build.write(_pix_to_escape(r, g, b, color_type, palette))
         # line ending, reset colours
-        ansi_string += '\x1b[0m\n'
+        ansi_build.write('\x1b[0m\n')
         if is_unicode:
             # skip a row because we do two rows at once
             next(yit, None)
 
-    return ansi_string
+    return ansi_build.getvalue()
 

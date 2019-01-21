@@ -12,7 +12,7 @@ Convert images to beautiful ANSI escape codes for display in commandline interfa
 from setuptools import setup
 
 setup(name='climage',
-      version='0.1.0',
+      version='0.1.2',
       description='Convert images to beautiful ANSI escape codes',
       url='http://github.com/pnappa/CLImage',
       author='Patrick Nappa',
@@ -26,5 +26,6 @@ setup(name='climage',
           },
       install_requires=[
           'Pillow',
+          'kdtree'
       ],
       zip_safe=False)
