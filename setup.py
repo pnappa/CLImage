@@ -23,7 +23,6 @@ Available as both a CLI application and a Python library.
 For more detail and available options, run `$ climage --help`.
 
 ### Python
-
 ```python3
 import climage
 
@@ -38,6 +37,7 @@ setup(name='climage',
       version='0.1.2',
       description='Convert images to beautiful ANSI escape codes',
       long_description=__doc__,
+      long_description_content_type='text/markdown',
       url='http://github.com/pnappa/CLImage',
       author='Patrick Nappa',
       author_email='patricknappa@gmail.com',
