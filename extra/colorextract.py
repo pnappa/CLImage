@@ -14,7 +14,7 @@ selecting different color profiles in gnome-terminal.
 
 from PIL import Image
 
-profiles = {"linuxconsole": "linuxconsole.png", "rxvt": "rxvt.png", "solarized": "solarized.png", "tango": "tango.png", "xterm": "xterm.png"}
+profiles = {"linuxconsole": "linuxconsole.png", "rxvt": "rxvt.png", "solarized": "solarized.png", "tango": "tango.png", "xterm": "xterm.png", "gruvbox": "gruvbox.png", "gruvboxdark": "gruvboxdark.png"}
 
 for profilename, filename in profiles.items():
     colors = []

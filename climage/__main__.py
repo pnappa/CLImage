@@ -37,7 +37,7 @@ def convert(filename, is_unicode=False, is_truecolor=False, is_256color=True, is
     is_16color      -- Whether to use only the 16 System colors. Default False
     is_8color       -- Whether to use only the first 8 of the System colors. Default False.
     width           -- Number of columns the output will use
-    palette         -- Determines which RGB colors the System colors map to. This only is relevant when using 8/16/256 color modes. This may be one of ["default", "xterm", "linuxconsole", "solarized", "rxvt", "tango"]
+    palette         -- Determines which RGB colors the System colors map to. This only is relevant when using 8/16/256 color modes. This may be one of ["default", "xterm", "linuxconsole", "solarized", "rxvt", "tango", "gruvbox", "gruvboxdark"]
 
     """
     # open the img, but convert to rgb because this fails if grayscale 
@@ -61,7 +61,7 @@ def to_file(infile, outfile, is_unicode=False, is_truecolor=False, is_256color=T
     is_16color      -- Whether to use only the 16 System colors. Default False
     is_8color       -- Whether to use only the first 8 of the System colors. Default False.
     width           -- Number of columns the output will use
-    palette         -- Determines which RGB colors the System colors map to. This only is relevant when using 8/16/256 color modes. This may be one of ["default", "xterm", "linuxconsole", "solarized", "rxvt", "tango"]
+    palette         -- Determines which RGB colors the System colors map to. This only is relevant when using 8/16/256 color modes. This may be one of ["default", "xterm", "linuxconsole", "solarized", "rxvt", "tango", "gruvbox", "gruvboxdark"]
 
     """
     with open(outfile, 'w') as ofile:
