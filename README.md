@@ -52,12 +52,17 @@ output = climage.convert('image.png', is_unicode=True)
 print(output)
 ```
 
-Two functions are exposed in the Python library `convert`, and `to_file`: 
+Three functions are exposed in the Python library `convert`, `convert_url`, and `to_file`: 
 
 ```python3
 convert(filename, is_unicode=False, is_truecolor=False, is_256color=True, is_16color=False, is_8color=False, width=80, palette="default")
 ```
 This will read in the file given by `filename`, and return the output.
+
+```python3
+convert_url(url, is_unicode=False, is_truecolor=False, is_256color=True, is_16color=False, is_8color=False, width=80, palette="default")
+```
+This will read in the url given by `url`, and return the output.
 
 ```python3
 to_file(infile, outfile, is_unicode=False, is_truecolor=False, is_256color=True, is_16color=False, is_8color=False, width=80, palette="default"):
