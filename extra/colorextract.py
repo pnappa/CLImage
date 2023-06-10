@@ -1,4 +1,3 @@
-
 """
 Dumps RGB->ANSI color mappings for given palettes.
 Output colors are in the form [[r,g,b, ansinum], ...]
@@ -14,13 +13,21 @@ selecting different color profiles in gnome-terminal.
 
 from PIL import Image
 
-profiles = {"linuxconsole": "linuxconsole.png", "rxvt": "rxvt.png", "solarized": "solarized.png", "tango": "tango.png", "xterm": "xterm.png", "gruvbox": "gruvbox.png", "gruvboxdark": "gruvboxdark.png"}
+profiles = {
+    "linuxconsole": "linuxconsole.png",
+    "rxvt": "rxvt.png",
+    "solarized": "solarized.png",
+    "tango": "tango.png",
+    "xterm": "xterm.png",
+    "gruvbox": "gruvbox.png",
+    "gruvboxdark": "gruvboxdark.png",
+}
 
 for profilename, filename in profiles.items():
     colors = []
     im = Image.open(filename)
-    # scan through the image, 
-    # colors are assigned left to right, top to bottom 
+    # scan through the image,
+    # colors are assigned left to right, top to bottom
     # first color is 0
     c_ansi = 0
     seen_colors = set()
@@ -37,4 +44,3 @@ for profilename, filename in profiles.items():
     assert len(seen_colors) == 16
     print(profilename)
     print(colors)
-

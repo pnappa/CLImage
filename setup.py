@@ -33,23 +33,24 @@ print(output)
 """
 from setuptools import setup
 
-setup(name='climage',
-      version='0.1.2',
-      description='Convert images to beautiful ANSI escape codes',
-      long_description=__doc__,
-      long_description_content_type='text/markdown',
-      url='http://github.com/pnappa/CLImage',
-      author='Patrick Nappa',
-      author_email='patricknappa@gmail.com',
-      license='MIT',
-      packages=['climage'],
-      entry_points={
-          'console_scripts': [
-              'climage = climage:main',
-              ]
-          },
-      python_requires=">=3.2",
-      classifiers=[
+setup(
+    name="climage",
+    version="0.1.2",
+    description="Convert images to beautiful ANSI escape codes",
+    long_description=__doc__,
+    long_description_content_type="text/markdown",
+    url="http://github.com/pnappa/CLImage",
+    author="Patrick Nappa",
+    author_email="patricknappa@gmail.com",
+    license="MIT",
+    packages=["climage"],
+    entry_points={
+        "console_scripts": [
+            "climage = climage:main",
+        ]
+    },
+    python_requires=">=3.2",
+    classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: Developers",
@@ -67,10 +68,8 @@ setup(name='climage',
         "Topic :: Artistic Software",
         "Topic :: Multimedia :: Graphics",
         "Topic :: System :: System Shells",
-        "Topic :: Utilities"
-        ],
-      install_requires=[
-          'Pillow',
-          'kdtree'
-      ],
-      zip_safe=False)
+        "Topic :: Utilities",
+    ],
+    install_requires=["Pillow", "kdtree"],
+    zip_safe=False,
+)
