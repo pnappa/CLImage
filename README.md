@@ -176,6 +176,29 @@ Output:
 
 ![dual pixel unicode example](extra/dual-pixel.png)
 
+### Additional interfacing
+As `climage` can convert arbitrary images in memory, converting images on the Internet is possible using the `requests` library:
+
+```python3
+import requests
+import climage
+from io import BytesIO
+
+response = requests.get('https://www.python.org/static/community_logos/python-logo-master-v3-TM-flattened.png')
+# Convert to RGB, as files on the Internet may be greyscale, which are not
+# supported.
+img = Image.open(BytesIO(response.content)).convert('RGB')
+# Convert the image to 80col, in 256 color mode, using unicode for higher def.
+converted = climage.convert_pil(img, is_unicode=True)
+print(converted)
+```
+
+Output:
+
+![internet conversion](extra/internet-conversion.png)
+
+Note that caching the image may be more efficient for multiple invocations.
+
 # Future:
  - [ ] Improve performance in 256 color mapping, see [here](https://github.com/pnappa/CLImage/issues/1)
  - Ideas? Let me know by filing an issue. :)
