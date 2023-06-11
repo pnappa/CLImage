@@ -4,7 +4,7 @@ Convert images to beautiful ANSI escape codes for display in command line interf
 
 Available as both a CLI application and a Python library.
 
-![demo](https://raw.github.com/pnappa/CLImage/master/extra/demo.png)
+![demo](extra/demo.png)
 
 # Features
  - Custom sized images
@@ -24,20 +24,20 @@ By default converting an image will output in 256 color, as 80 columns, and ASCI
 ```bash
 $ climage image.png
 ```
-![demo](https://raw.github.com/pnappa/CLImage/master/extra/warhol256ascii.png)
+![demo](extra/warhol256ascii.png)
 
 
 A nicer image can be obtained when enabling unicode and truecolor flags.
 ```bash
 $ climage --unicode --truecolour image.png
 ```
-![demo](https://raw.github.com/pnappa/CLImage/master/extra/warholtruecolorunicode.png)
+![demo](extra/warholtruecolorunicode.png)
 
 For display in TTYs such as the Linux terminal before starting X11 (also accessible by Ctrl-Alt-F3, etc), you should restrict yourself to 8 color, and ASCII only. As 8 and 16 colors are solely constructed out of system colors (often set by the terminal theme), it is recommended to select a palette for these, depending on what you have selected.
 ```bash
 $ climage --8color warhol.png --palette solarized
 ```
-![demo](https://raw.github.com/pnappa/CLImage/master/extra/warhol8colsolarized.png)
+![demo](extra/warhol8colsolarized.png)
 
 Further options may be found by running `climage --help`
 
