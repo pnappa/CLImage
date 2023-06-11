@@ -27,7 +27,7 @@ def _best(color_type, palette, source):
     return tr.search_nn(source)[0].data.code
 
 
-class _color_types:
+class color_types:
     truecolor = 0
     color256 = 1
     color16 = 2
@@ -36,11 +36,11 @@ class _color_types:
 
 def populate_kdtree(color_type, palette):
     # TODO: add assert for color_type?
-    if color_type == _color_types.color8:
+    if color_type == color_types.color8:
         colors = _get_system_colors(palette)[:8]
-    elif color_type == _color_types.color16:
+    elif color_type == color_types.color16:
         colors = _get_system_colors(palette)[:]
-    elif color_type == _color_types.color256:
+    elif color_type == color_types.color256:
         colors = _get_system_colors(palette)[:]
         # credit: https://github.com/dom111/image-to-ansi/
         # these colours can be found by running colortest-256
@@ -107,9 +107,9 @@ palettes = [
 ]
 # store the generated kdtrees for palettes
 color_kdtrees = {
-    _color_types.color256: {pal: None for pal in palettes},
-    _color_types.color16: {pal: None for pal in palettes},
-    _color_types.color8: {pal: None for pal in palettes},
+    color_types.color256: {pal: None for pal in palettes},
+    color_types.color16: {pal: None for pal in palettes},
+    color_types.color8: {pal: None for pal in palettes},
 }
 
 
@@ -286,33 +286,93 @@ def _id_to_codepoint(in_id, is_bg):
             return "3" + str(in_id)
 
 
-# convert the rgb value into an escape sequence
-def _pix_to_escape(r, g, b, color_type, palette):
-    if color_type == _color_types.truecolor:
-        return "\x1b[48;2;{};{};{}m  ".format(r, g, b)
-    elif color_type == _color_types.color256:
-        return "\x1b[48;5;{}m  ".format(_best(color_type, palette, (r, g, b)))
-    else:
-        color_id = _best(color_type, palette, (r, g, b))
-        return "\x1b[{}m  ".format(_id_to_codepoint(color_id, is_bg=True))
+def convert_pixel_color(pixel, ctype=color_types.color256, palette="default"):
+    """
+    Convert an RGB triple into the color used by the ANSI colour sequence,
+    depending on the color mode.
+
+    Arguments:
+        pixel   -- (r,g,b) tuple representing the pixel. Each pixel is an 8 bit value, in the range [0, 255].
+
+    Keyword Arguments:
+        ctype   -- the color depth to use, default color_types.color256
+        palette -- if not using the truecolor depth, adjust how pixels map to the desired colourspace to match the colourscheme better.
+    """
+    # The ANSI sequence for a truecolor color is simply the RGB colours.
+    if ctype == color_types.truecolor:
+        return pixel[:3]
+
+    # Whereas the 8, 16, or 256 color value depends on the palette. We find the
+    # closest visually similar color.
+    return _best(ctype, palette, pixel)
 
 
-# convert the two row's colors to a escape sequence (unicode does two rows at a time)
-def _dual_pix_to_escape(r1, r2, g1, g2, b1, b2, color_type, palette):
-    if color_type == _color_types.truecolor:
-        return "\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m▄".format(r1, g1, b1, r2, g2, b2)
-    elif color_type == _color_types.color256:
-        bg = _best(color_type, palette, (r1, g1, b1))
-        fg = _best(color_type, palette, (r2, g2, b2))
-        return "\x1b[48;5;{}m\x1b[38;5;{}m▄".format(bg, fg)
-    else:
-        bg_codepoint = _id_to_codepoint(
-            _best(color_type, palette, (r1, g1, b1)), is_bg=True
+def get_ansi_pixel(pixel, ctype=color_types.color256, palette="default"):
+    """
+    Convert a single RGB pixel into an ANSI escape sequence representing that pixel.
+
+    Arguments:
+        pixel   -- (r,g,b) tuple representing the pixel. Each pixel is an 8 bit value, in the range [0, 255].
+
+    Keyword Arguments:
+        ctype   -- the color depth to use, default color_types.color256
+        palette -- if not using the truecolor depth, adjust how pixels map to the desired colourspace to match the colourscheme better.
+    """
+    # Convert a single pixel into the ANSI escape sequence.
+    color = convert_pixel_color(
+        pixel,
+        ctype=ctype,
+        palette=palette,
+    )
+    if ctype == color_types.truecolor:
+        return "\x1b[48;2;{};{};{}m  ".format(*color)
+    if ctype == color_types.color256:
+        return "\x1b[48;5;{}m  ".format(color)
+    return "\x1b[{}m  ".format(_id_to_codepoint(color, is_bg=True))
+
+
+def get_reset_code():
+    """
+    Get the ANSI escape sequence to return color to normal.
+    """
+    return "\x1b[0m"
+
+
+def get_dual_unicode_ansi_pixels(
+    top_pixel, bottom_pixel, ctype=color_types.color256, palette="default"
+):
+    """
+    Convert two RGB pixels into an ANSI escape sequence representing those pixel using unicode.
+
+    Arguments:
+        top_pixel   -- (r,g,b) tuple representing the top pixel. Each pixel is an 8 bit value, in the range [0, 255].
+        bottom_pixel   -- (r,g,b) tuple representing the bottom pixel. Each pixel is an 8 bit value, in the range [0, 255].
+
+    Keyword Arguments:
+        ctype   -- the color depth to use, default color_types.color256
+        palette -- if not using the truecolor depth, adjust how pixels map to the desired colourspace to match the colourscheme better.
+    """
+    color_top = convert_pixel_color(
+        top_pixel,
+        ctype=ctype,
+        palette=palette,
+    )
+    color_bottom = convert_pixel_color(
+        bottom_pixel,
+        ctype=ctype,
+        palette=palette,
+    )
+
+    if ctype == color_types.truecolor:
+        return "\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m▄".format(
+            *color_top, *color_bottom
         )
-        fg_codepoint = _id_to_codepoint(
-            _best(color_type, palette, (r2, g2, b2)), is_bg=False
-        )
-        return "\x1b[{}m\x1b[{}m▄".format(bg_codepoint, fg_codepoint)
+    if ctype == color_types.color256:
+        return "\x1b[48;5;{}m\x1b[38;5;{}m▄".format(color_top, color_bottom)
+
+    bg_codepoint = _id_to_codepoint(color_top, is_bg=True)
+    fg_codepoint = _id_to_codepoint(color_bottom, is_bg=False)
+    return "\x1b[{}m\x1b[{}m▄".format(bg_codepoint, fg_codepoint)
 
 
 def _toAnsi(img, oWidth, is_unicode, color_type, palette):
@@ -340,19 +400,20 @@ def _toAnsi(img, oWidth, is_unicode, color_type, palette):
     yit = iter(range(destHeight))
     for y in yit:
         for x in range(destWidth):
-            r, g, b = img.getpixel((x, y))
+            pix = img.getpixel((x, y))
             if is_unicode:
                 # the next row's pixel
-                rprime, gprime, bprime = img.getpixel((x, y + 1))
+                bottom_pix = img.getpixel((x, y + 1))
                 ansi_build.write(
-                    _dual_pix_to_escape(
-                        r, rprime, g, gprime, b, bprime, color_type, palette
+                    get_dual_unicode_ansi_pixels(
+                        pix, bottom_pix, ctype=color_type, palette=palette
                     )
                 )
             else:
-                ansi_build.write(_pix_to_escape(r, g, b, color_type, palette))
-        # line ending, reset colours
-        ansi_build.write("\x1b[0m\n")
+                ansi_build.write(get_ansi_pixel(pix, ctype=color_type, palette=palette))
+        # Line ending, reset colours
+        # We do this not to affect the surrounding terminal content.
+        ansi_build.write("{}\n".format(get_reset_code()))
         if is_unicode:
             # skip a row because we do two rows at once
             next(yit, None)

@@ -28,14 +28,34 @@ import climage
 
 output = climage.convert('image.png', is_unicode=True)
 print(output)
+
+# Converting downloaded file
+from PIL import Image
+import requests
+response = requests.get('https://www.python.org/static/community_logos/python-logo-master-v3-TM-flattened.png')
+# Convert to RGB, as files on the Internet may be greyscale, which are not
+# supported.
+img = Image.open(BytesIO(response.content)).convert('RGB')
+# Convert the image to 80col, in 256 color mode, using unicode for higher def.
+converted = climage.convert_pil(img, is_unicode=True)
+print(converted)
+
+# Convert the image into 50px * 50px, as the convert_array function does not
+# perform resizing.
+img = Image.open('image.png').convert('RGB').resize((50, 50))
+arr = np.array(img)
+output = climage.convert_array(arr, is_unicode=True)
+print(output)
 ```
+
+View additional examples on the [project homepage](https://github.com/pnappa/CLImage).
 
 """
 from setuptools import setup
 
 setup(
     name="climage",
-    version="0.1.2",
+    version="0.2.0",
     description="Convert images to beautiful ANSI escape codes",
     long_description=__doc__,
     long_description_content_type="text/markdown",
