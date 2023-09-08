@@ -2,13 +2,21 @@
 # -*- coding: utf-8 -*-
 
 from . import __version__
-from .climage import _toAnsi
-from .climage import _color_types
-from .climage import palettes
+from .climage import (
+    _toAnsi,
+    _best,
+    palettes,
+    color_types,
+    get_dual_unicode_ansi_pixels,
+    get_reset_code,
+    get_ansi_pixel,
+    convert_pixel_color,
+)
 
 from PIL import Image
 import argparse
 import sys
+from io import StringIO
 
 
 def _get_color_type(is_truecolor, is_256color, is_16color, is_8color):
@@ -23,13 +31,64 @@ def _get_color_type(is_truecolor, is_256color, is_16color, is_8color):
     )
 
     if is_truecolor:
-        return _color_types.truecolor
+        return color_types.truecolor
     if is_256color:
-        return _color_types.color256
+        return color_types.color256
     if is_16color:
-        return _color_types.color16
+        return color_types.color16
     if is_8color:
-        return _color_types.color8
+        return color_types.color8
+
+
+def color_to_flags(color_type):
+    """
+    Convert a value of the color_types enum to kwargs accepted by the conversion functions.
+    """
+    ret = {
+        "is_truecolor": color_type == color_types.truecolor,
+        "is_256color": color_type == color_types.color256,
+        "is_16color": color_type == color_types.color16,
+        "is_8color": color_type == color_types.color8,
+    }
+    assert any(ret.values()), "Invalid color type supplied"
+    return ret
+
+
+def convert_pil(
+    img,
+    is_unicode=False,
+    is_truecolor=False,
+    is_256color=True,
+    is_16color=False,
+    is_8color=False,
+    width=80,
+    palette="default",
+):
+    """
+    Convert an image, and return the resulting string.
+
+    Arguments:
+    img          -- A Pillow object representing the image to convert. Must be in RGB or RGBA format.
+
+    Keyword Arguments:
+    is_unicode      -- whether to use unicode in generating output (default False, ASCII will be used)
+    is_truecolor    -- whether to use RGB colors in generation (few terminals support this). Exactly one color option must only be selected. Default False.
+    is_256color     -- whether to use 256 colors (16 system colors, 6x6x6 color cube, and 24 grayscale colors) for generating the output. This is the default color setting. Please run colortest-256 for a demonstration of colors. Default True.
+    is_16color      -- Whether to use only the 16 System colors. Default False
+    is_8color       -- Whether to use only the first 8 of the System colors. Default False.
+    width           -- Number of columns the output will use
+    palette         -- Determines which RGB colors the System colors map to. This only is relevant when using 8/16/256 color modes. This may be one of ["default", "xterm", "linuxconsole", "solarized", "rxvt", "tango", "gruvbox", "gruvboxdark"]
+
+    """
+    ctype = _get_color_type(
+        is_truecolor=is_truecolor,
+        is_256color=is_256color,
+        is_16color=is_16color,
+        is_8color=is_8color,
+    )
+    return _toAnsi(
+        img, oWidth=width, is_unicode=is_unicode, color_type=ctype, palette=palette
+    )
 
 
 def convert(
@@ -61,15 +120,79 @@ def convert(
     # open the img, but convert to rgb because this fails if grayscale
     # (assumes pixels are at least triplets)
     im = Image.open(filename).convert("RGB")
+    return convert_pil(
+        im,
+        is_truecolor=is_truecolor,
+        is_256color=is_256color,
+        is_16color=is_16color,
+        is_8color=is_8color,
+        width=width,
+        is_unicode=is_unicode,
+        palette=palette,
+    )
+
+
+def convert_array(
+    arr,
+    is_unicode=False,
+    is_truecolor=False,
+    is_256color=True,
+    is_16color=False,
+    is_8color=False,
+    palette="default",
+):
+    """
+    Convert an array representing an image, and return the resulting string. Expects a numpy array or multi-dimensional representing an image in row-major format, with elements representing RGB triplets.
+
+    Arguments:
+    array          -- An list or numpy array whose elements represent an image. This must be in row-major format, in that array[0][0] represents the top left pixel, array[len(array)-1][0] represents the bottom left pixel, array[0][len(array[0])-1] represents the top right pixel, etc. The element at the root index must contain at least a 3 long vector, with the vector representing red, green, and blue components respectively. Each color must be in the range [0, 255] inclusive.
+
+    Keyword Arguments:
+    is_unicode      -- whether to use unicode in generating output (default False, ASCII will be used). If unicode is enabled, the input must be an even number of rows high.
+    is_truecolor    -- whether to use RGB colors in generation (few terminals support this). Exactly one color option must only be selected. Default False.
+    is_256color     -- whether to use 256 colors (16 system colors, 6x6x6 color cube, and 24 grayscale colors) for generating the output. This is the default color setting. Please run colortest-256 for a demonstration of colors. Default True.
+    is_16color      -- Whether to use only the 16 System colors. Default False
+    is_8color       -- Whether to use only the first 8 of the System colors. Default False.
+    palette         -- Determines which RGB colors the System colors map to. This only is relevant when using 8/16/256 color modes. This may be one of ["default", "xterm", "linuxconsole", "solarized", "rxvt", "tango", "gruvbox", "gruvboxdark"]
+
+    """
     ctype = _get_color_type(
         is_truecolor=is_truecolor,
         is_256color=is_256color,
         is_16color=is_16color,
         is_8color=is_8color,
     )
-    return _toAnsi(
-        im, oWidth=width, is_unicode=is_unicode, color_type=ctype, palette=palette
-    )
+
+    assert (not is_unicode) or len(
+        arr
+    ) % 2 == 0, "Expecting even number of rows in array for unicode conversion"
+
+    # where the converted string will be put in
+    ansi_build = StringIO()
+
+    yit = iter(range(len(arr)))
+    for y in yit:
+        for col in range(len(arr[y])):
+            # Must be hashable for our kd-tree...
+            pix = tuple(arr[y][col])
+            assert len(pix) >= 3, "Expecting RGB or RGBA array"
+            if is_unicode:
+                bottom_pix = tuple(arr[y + 1][col])
+                ansi_build.write(
+                    get_dual_unicode_ansi_pixels(
+                        pix, bottom_pix, ctype=ctype, palette=palette
+                    )
+                )
+            else:
+                ansi_build.write(get_ansi_pixel(pix, ctype=ctype, palette=palette))
+        # Line ending, reset colours
+        # We do this not to affect the surrounding terminal content.
+        ansi_build.write("{}\n".format(get_reset_code()))
+        if is_unicode:
+            # skip a row because we do two rows at once
+            next(yit, None)
+
+    return ansi_build.getvalue()
 
 
 def to_file(
