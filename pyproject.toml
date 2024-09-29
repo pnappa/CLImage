@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools >= 40.0.0"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "climage"
+dynamic = ["version"]
+description = "Convert images to beautiful ANSI escape codes"
+authors = [
+  { name = "Patrick Nappa", email = "patricknappa@gmail.com" },
+]
+license = { text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.2"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.2",
+    "Programming Language :: Python :: 3.3",
+    "Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Artistic Software",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: System :: System Shells",
+    "Topic :: Utilities",
+]
+dependencies = ["Pillow", "kdtree"]
+
+
+[tool.setuptools]
+packages = ["climage"]
+zip-safe = false
+
+[tool.setuptools.dynamic]
+version = {attr = "climage.__version__.__version__"}
+
+[project.urls]
+Documentation = "http://github.com/pnappa/CLImage"
+Issues = "http://github.com/pnappa/CLImage/issues"
+Source = "http://github.com/pnappa/CLImage"
+
+[project.scripts]
+climage = "climage:main"
+
