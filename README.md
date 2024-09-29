@@ -4,7 +4,7 @@ Convert images to beautiful ANSI escape codes for display in command line interf
 
 Available as both a CLI application and a Python library.
 
-![demo](extra/demo.png)
+![demo](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/demo.png)
 
 # Features
  - Custom sized images
@@ -24,20 +24,20 @@ By default converting an image will output in 256 color, as 80 columns, and ASCI
 ```bash
 $ climage image.png
 ```
-![demo](extra/warhol256ascii.png)
+![demo](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/warhol256ascii.png)
 
 
 A nicer image can be obtained when enabling unicode and truecolor flags.
 ```bash
 $ climage --unicode --truecolour image.png
 ```
-![demo](extra/warholtruecolorunicode.png)
+![demo](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/warholtruecolorunicode.png)
 
 For display in TTYs such as the Linux terminal before starting X11 (also accessible by Ctrl-Alt-F3, etc), you should restrict yourself to 8 color, and ASCII only. As 8 and 16 colors are solely constructed out of system colors (often set by the terminal theme), it is recommended to select a palette for these, depending on what you have selected.
 ```bash
 $ climage --8color warhol.png --palette solarized
 ```
-![demo](extra/warhol8colsolarized.png)
+![demo](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/warhol8colsolarized.png)
 
 Further options may be found by running `climage --help`
 
@@ -107,7 +107,7 @@ print(
 
 Output:
 
-![python list example](extra/python-list.png)
+![python list example](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/python-list.png)
 
 ### Helpers
 
@@ -129,7 +129,7 @@ print(convert('teapot.png', is_unicode=True, **color_to_flags(color_types.trueco
 
 Output:
 
-![teapot example](extra/teapot-example.png)
+![teapot example](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/teapot-example.png)
 
 ```python3
 from climage import get_ansi_pixel, get_reset_code, color_types
@@ -152,7 +152,7 @@ print(pix + get_reset_code())
 
 Output:
 
-![single pixel example](extra/single-pixel.png)
+![single pixel example](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/single-pixel.png)
 
 
 ```python3
@@ -174,7 +174,7 @@ print(pixels + get_reset_code())
 
 Output:
 
-![dual pixel unicode example](extra/dual-pixel.png)
+![dual pixel unicode example](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/dual-pixel.png)
 
 ### Additional interfacing
 As `climage` can convert arbitrary images in memory, converting images on the Internet is possible using the `requests` library:
@@ -195,7 +195,7 @@ print(converted)
 
 Output:
 
-![internet conversion](extra/internet-conversion.png)
+![internet conversion](https://raw.githubusercontent.com/pnappa/CLImage/master/extra/internet-conversion.png)
 
 Note that caching the image may be more efficient for multiple invocations.
 
